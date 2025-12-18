@@ -13,7 +13,7 @@ gcloud compute firewall-rules create "learn-fw-allow-sshiap" \
     --direction 'INGRESS' \
     --action 'ALLOW' \
     --rules 'tcp:22' \
-    --source-ranges '0.0.0.0/0' \
+    --source-ranges '35.235.240.0/20' \
     --target-tags "$SSHIAP_FIREWALL_RULE_NAME"
 
 gcloud compute firewall-rules create "learn-fw-allow-service-port" \

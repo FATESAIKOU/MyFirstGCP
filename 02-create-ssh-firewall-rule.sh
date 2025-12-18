@@ -6,7 +6,7 @@ gcloud compute firewall-rules create "learn-fw-allow-ssh" \
     --action 'ALLOW' \
     --rules 'tcp:22' \
     --source-ranges '0.0.0.0/0' \
-    --target-tags 'allow-ssh'
+    --target-tags "$SSH_FIREWALL_RULE_NAME"
 
 gcloud compute firewall-rules create "learn-fw-allow-service-port" \
     --network "$VPC_NAME" \
@@ -14,4 +14,4 @@ gcloud compute firewall-rules create "learn-fw-allow-service-port" \
     --action 'ALLOW' \
     --rules 'tcp:8080' \
     --source-ranges '0.0.0.0/0' \
-    --target-tags 'allow-service-port'
+    --target-tags "$SERVICE_FIREWALL_RULE_NAME"

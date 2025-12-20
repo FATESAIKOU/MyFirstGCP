@@ -6,6 +6,7 @@ gcloud compute instances create "$VM_NAME_SSHOPEN" \
   --image-family="$IMAGE_FAMILY" \
   --image-project="$IMAGE_PROJECT" \
   --tags="$SSH_FIREWALL_RULE_NAME,$SERVICE_FIREWALL_RULE_NAME" \
+  --scopes=cloud-platform \
   --boot-disk-size="20GB"
 
 gcloud compute instances create "$VM_NAME_SSHIAP" \
@@ -14,6 +15,7 @@ gcloud compute instances create "$VM_NAME_SSHIAP" \
   --image-family="$IMAGE_FAMILY" \
   --image-project="$IMAGE_PROJECT" \
   --tags="$SSHIAP_FIREWALL_RULE_NAME,$SERVICE_FIREWALL_RULE_NAME" \
+  --scopes=cloud-platform \
   --boot-disk-size="20GB"
 
 gcloud compute instances create "$VM_NAME_SSHCLOSED" \
@@ -22,6 +24,7 @@ gcloud compute instances create "$VM_NAME_SSHCLOSED" \
   --image-family="$IMAGE_FAMILY" \
   --image-project="$IMAGE_PROJECT" \
   --tags="$SERVICE_FIREWALL_RULE_NAME" \
+  --scopes=cloud-platform \
   --boot-disk-size="20GB"
 
 # gcloud compute instances list
@@ -36,11 +39,12 @@ gcloud compute instances create "$VM_NAME_SSHCLOSED" \
 # Create a VM without external IP
 gcloud compute instances create "$VM_NAME_SSHIAP_PRIVATE" \
   --machine-type="$MACHINE_TYPE" \
-  --subnet="$SUBNET_NAME" \
+  --subnet="$SUBNET_NAME_PRIVATEIPGOOGLEACCESS" \
   --image-family="$IMAGE_FAMILY" \
   --image-project="$IMAGE_PROJECT" \
   --no-address \
   --tags="$SSHIAP_FIREWALL_RULE_NAME,$SERVICE_FIREWALL_RULE_NAME" \
+  --scopes=cloud-platform \
   --boot-disk-size="20GB"
 
 # create router and nat for private VM to access internet

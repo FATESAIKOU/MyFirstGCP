@@ -5,6 +5,8 @@ export REGION="asia-northeast1"
 export VPC_NAME="learn-vpc"
 export SUBNET_NAME="learn-subnet"
 export SUBNET_RANGE="10.10.0.0/24"
+export SUBNET_NAME_PRIVATEIPGOOGLEACCESS="learn-subnet-privateipgoogleaccess"
+export SUBNET_RANGE_PRIVATEIPGOOGLEACCESS="10.10.1.0/24"
 export GOOGLE_MANAGED_ADDRESS="10.11.0.0"
 export GOOGLE_MANAGED_ADDRESS_MASK="24"
 

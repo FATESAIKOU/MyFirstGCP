@@ -60,3 +60,26 @@ echo -n "$PASSWORD" | gcloud secrets create dbpass --data-file=-
 ## To retrieve secret value:
 # gcloud secrets versions access latest --secret="dbuser"
 # gcloud secrets versions access latest --secret="dbpass"
+
+################
+## To test SQL #
+################
+
+## get instance connection name
+# export INSTANCE_CONNECTION_NAME=$(gcloud sql instances describe learn-sql --format="value(connectionName)")
+
+## Install cloud-sql-proxy
+# sudo curl -L -o /usr/local/bin/cloud-sql-proxy \
+#   https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.19.0/cloud-sql-proxy.linux.amd64
+# sudo chmod +x /usr/local/bin/cloud-sql-proxy
+
+## test & launch cloud sql proxy
+# cloud-sql-proxy --version
+# cloud-sql-proxy \
+#   --private-ip \
+#   --address 127.0.0.1 \
+#   --port 3306 \
+#   $INSTANCE_CONNECTION_NAME
+
+## Do connect
+# mysql -h 127.0.0.1 -P3306 -u$(gcloud secrets versions access latest --secret="dbuser") -p$(gcloud secrets versions access latest --secret="dbpass")

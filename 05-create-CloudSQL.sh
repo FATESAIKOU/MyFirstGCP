@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-############################################################################
-# Add Secret Manager Access Role to Compute Engine Default Service Account #
-############################################################################
+###################################################
+# Grant default compute sa to use cloud sql proxy #
+###################################################
 
-## Add secret access to service account
 PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format="get(projectNumber)")
 
 ## Create your own service account and use it instead of the default compute service account
@@ -15,7 +14,7 @@ PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format="get(projectNum
 
 gcloud projects add-iam-policy-binding "$PROJECT_NUMBER" \
     --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
-    --role="roles/secretmanager.secretAccessor"
+    --role="roles/cloudsql.client"
 
 ## Check iam policy bindings after adding
 # gcloud projects get-iam-policy "$PROJECT_ID"
@@ -34,3 +33,30 @@ gcloud sql instances create "$SQL_INSTANCE_NAME" \
 
 ## Hint: not need to enable firewall rule for Cloud SQL, because CloudSQL is not in subnet, it's a managed service.
 
+############################################################################
+# Add Secret Manager Access Role to Compute Engine Default Service Account #
+############################################################################
+
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format="get(projectNumber)")
+
+gcloud projects add-iam-policy-binding "$PROJECT_NUMBER" \
+    --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+    --role="roles/secretmanager.secretAccessor"
+
+################################
+# Create DBUser and save to SM #
+################################
+
+DBUSER="dbuser"
+DBPASS="LearnGCP1234!"
+
+gcloud sql users create "$DBUSER" \
+    --instance="$SQL_INSTANCE_NAME" \
+    --password="$DBPASS"
+
+# Save DB credentials to Secret Manager
+echo -n "$USERNAME" | gcloud secrets create dbuser --data-file=-
+echo -n "$PASSWORD" | gcloud secrets create dbpass --data-file=-
+## To retrieve secret value:
+# gcloud secrets versions access latest --secret="dbuser"
+# gcloud secrets versions access latest --secret="dbpass"

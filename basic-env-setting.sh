@@ -17,3 +17,7 @@ export VM_NAME_SSHIAP_PRIVATE="learn-vm-sshiap-private"
 export MACHINE_TYPE="e2-micro"
 export IMAGE_FAMILY="ubuntu-2204-lts"
 export IMAGE_PROJECT="ubuntu-os-cloud"
+
+export ROUTER_NAME="learn-router"
+export NAT_NAME="learn-nat"
+

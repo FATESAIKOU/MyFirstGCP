@@ -33,3 +33,5 @@ export NAT_NAME="learn-nat"
 export SQL_INSTANCE_NAME="learn-sql"
 export DB_VERSION="MYSQL_8_0"
 export DB_TIER="db-f1-micro"
+
+export BUCKET_NAME="learn-storage-ksf"

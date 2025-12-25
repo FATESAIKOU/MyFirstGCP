@@ -123,25 +123,190 @@ resource "google_compute_firewall" "allow_app_port" {
 
 ## 3.2 IAM / Service Account
 
-請回覆「OK，繼續 IAM/Service Account」後再展開此段落。
+### 設計理念
+
+在 GCP 中，Service Account 是給「程式」使用的身份，不是給「人」使用的。
+
+```hcl
+# iam.tf
+
+# 應用程式專用 Service Account
+resource "google_service_account" "app_sa" {
+  account_id   = "learn-app-sa"
+  display_name = "ToDo App Service Account"
+  description  = "Service account for ToDo application VM"
+}
+
+# 授予最小必要權限
+resource "google_project_iam_member" "app_sa_cloudsql_client" {
+  project = var.project_id
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:${google_service_account.app_sa.email}"
+}
+```
+
+### 🤔 為什麼不用 Default Compute SA？
+
+| 比較項目 | Default SA | 專用 SA |
+|---------|-----------|--------|
+| 預設權限 | Project Editor（過大） | 無（需明確授予） |
+| 可追溯性 | 難以區分 | 每個 app 獨立 |
+| 符合規範 | ❌ | ✅ |
 
 ---
 
 ## 3.3 Cloud SQL
 
-請回覆「OK，繼續 Cloud SQL」後再展開此段落。
+### Private Service Access 前置作業
+
+Cloud SQL 使用 Private IP 需要先設定 VPC Peering：
+
+```hcl
+# database.tf
+
+# 預留 IP 範圍給 GCP 託管服務
+resource "google_compute_global_address" "private_ip_range" {
+  name          = "google-managed-services-${var.existing_vpc_name}"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = 16
+  network       = data.google_compute_network.existing_vpc.id
+}
+
+# 建立 VPC Peering
+resource "google_service_networking_connection" "private_vpc_connection" {
+  network                 = data.google_compute_network.existing_vpc.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.private_ip_range.name]
+}
+```
+
+### Cloud SQL Instance
+
+```hcl
+resource "google_sql_database_instance" "main" {
+  name             = "learn-sql"
+  database_version = "MYSQL_8_0"
+  region           = var.region
+
+  depends_on = [google_service_networking_connection.private_vpc_connection]
+
+  settings {
+    tier = "db-f1-micro"
+
+    ip_configuration {
+      ipv4_enabled    = false  # 不使用公網 IP
+      private_network = data.google_compute_network.existing_vpc.id
+    }
+  }
+}
+```
+
+### 🤔 密碼管理策略
+
+```hcl
+# 產生隨機密碼
+resource "random_password" "db_password" {
+  length  = 24
+  special = true
+}
+
+# 存入 Secret Manager
+resource "google_secret_manager_secret" "db_password" {
+  secret_id = "learn-db-password"
+  replication { auto {} }
+}
+```
 
 ---
 
 ## 3.4 Compute Instance
 
-請回覆「OK，繼續 Compute Instance」後再展開此段落。
+### VM 設定重點
+
+```hcl
+# compute.tf
+
+resource "google_compute_instance" "app_vm" {
+  name         = "learn-vm-app"
+  machine_type = "e2-micro"
+  zone         = var.zone
+
+  # 使用專用 SA（不是 default）
+  service_account {
+    email  = google_service_account.app_sa.email
+    scopes = ["cloud-platform"]
+  }
+
+  # 網路標籤 → 對應 Firewall Rules
+  tags = ["allow-ssh-iap", "allow-app-port"]
+
+  # 啟用 OS Login
+  metadata = {
+    enable-oslogin = "TRUE"
+  }
+}
+```
+
+### 🤔 Startup Script vs 其他方式
+
+| 方式 | 適用場景 | 優點 | 缺點 |
+|-----|---------|------|------|
+| Startup Script | 簡單初始化 | 內建、免費 | 不冪等 |
+| Packer | 標準化 Image | 快速啟動 | 需維護 |
+| Ansible | 複雜配置 | 冪等 | 額外工具 |
 
 ---
 
 ## 3.5 Cloud Storage
 
-請回覆「OK，繼續 Cloud Storage」後再展開此段落。
+```hcl
+# storage.tf
+
+resource "google_storage_bucket" "attachments" {
+  name     = "${var.project_id}-attachments"
+  location = var.region
+
+  # 統一用 IAM 控制（不用 ACL）
+  uniform_bucket_level_access = true
+
+  # 版本控制
+  versioning { enabled = true }
+}
+
+# Bucket-level IAM（更精確）
+resource "google_storage_bucket_iam_member" "app_sa_object_admin" {
+  bucket = google_storage_bucket.attachments.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.app_sa.email}"
+}
+```
+
+---
+
+## ✅ Phase 3 Complete Checklist
+
+- [x] VPC Data Source（讀取既有 VPC）
+- [x] Subnet × 2（app + db）
+- [x] Firewall × 3（SSH IAP + App Port + Internal）
+- [x] Service Account + IAM Bindings × 5
+- [x] Cloud SQL + Database + User
+- [x] Secret Manager（密碼管理）
+- [x] Compute Instance（含 Cloud SQL Proxy）
+- [x] Cloud Storage + Bucket IAM
+
+---
+
+## 📝 最終 Review 問題
+
+1. 為什麼 Cloud SQL 要用 Private IP？
+2. `depends_on` 在什麼情況下需要明確指定？
+3. Service Account 的 `scopes` 和 IAM role 有什麼差別？
+4. 為什麼用 `google_storage_bucket_iam_member` 而不是 `google_project_iam_member`？
+
+---
+
+**🎉 恭喜完成 Terraform IaC 教材！**
 
 ---
 

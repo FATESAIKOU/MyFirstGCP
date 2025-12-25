@@ -71,7 +71,7 @@ resource "google_compute_instance" "app_vm" {
     [Service]
     Type=simple
     User=root
-    ExecStart=/usr/local/bin/cloud-sql-proxy --port 3306 $CONNECTION_NAME
+    ExecStart=/usr/local/bin/cloud-sql-proxy --private-ip --port 3306 $CONNECTION_NAME
     Restart=always
     RestartSec=5
 
@@ -111,3 +111,6 @@ resource "google_compute_instance" "app_vm" {
 # 1. 集中管理：透過 IAM 控制 SSH 存取
 # 2. 審計日誌：所有 SSH 連線都有記錄
 # 3. 自動金鑰管理：不需要手動管理 SSH key
+#
+# DB 存取指令
+# mysql -h 127.0.0.1 -P3306 -u"app_user" -p$(gcloud secrets versions access latest --secret="learn-db-password")

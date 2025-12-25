@@ -1,0 +1,28 @@
+# 複製此檔案為 terraform.tfvars 並填入實際值
+# ⚠️ terraform.tfvars 不應該 commit 到 Git
+
+# 必填項目
+project_id = "learn-gcp-ksf"
+
+# 選填項目（有預設值）
+region      = "asia-northeast1"
+zone        = "asia-northeast1-a"
+environment = "dev"
+
+# 既有資源
+existing_vpc_name = "learn-vpc-iac"
+
+# 網路設定
+app_subnet_cidr = "10.20.0.0/24"
+db_subnet_cidr  = "10.20.1.0/24"
+
+# 運算資源
+machine_type   = "e2-micro"
+boot_disk_size = 20
+
+# 資料庫
+db_version = "MYSQL_8_0"
+db_tier    = "db-f1-micro"
+
+# 儲存空間
+bucket_name_suffix = "attachments"

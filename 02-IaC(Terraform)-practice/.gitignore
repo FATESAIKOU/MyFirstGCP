@@ -1,0 +1,41 @@
+# Terraform 狀態檔（包含敏感資訊）
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Terraform 目錄（包含下載的 providers）
+.terraform/
+
+# Terraform 鎖定檔（可選擇是否 commit）
+# 建議 commit 以確保團隊使用相同版本
+# .terraform.lock.hcl
+
+# 實際變數值（可能包含密碼、專案 ID 等敏感資訊）
+terraform.tfvars
+*.auto.tfvars
+
+# Crash log
+crash.log
+crash.*.log
+
+# Override 檔案（本地覆蓋用）
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI 設定檔
+.terraformrc
+terraform.rc
+
+# macOS 系統檔案
+.DS_Store
+
+# IDE 設定
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Plan 輸出檔案
+*.tfplan
